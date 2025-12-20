@@ -1,286 +1,363 @@
 import { useState, useEffect } from 'react';
 import AdminHeader from '../../components/AdminHeader';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import Card from '../../components/ui/Card';
 
 const DiscountOffers = () => {
   const [offers, setOffers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingOffer, setEditingOffer] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [coupons, setCoupons] = useState([]);
+  const [currentCouponIndex, setCurrentCouponIndex] = useState(0);
+  const [showCoupons, setShowCoupons] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    discountPercentage: 0,
-    validFrom: '',
-    validTo: '',
-    availableOnSales: false,
-    availableOnWebsite: false,
-    isActive: true,
+    discountPercentage: 10,
+    startDate: '',
+    endDate: '',
+    availableOn: 'both', // 'both', 'sales', 'website'
+    active: true,
   });
 
   useEffect(() => {
     fetchOffers();
   }, []);
 
-  const fetchOffers = async () => {
-    try {
-      // const response = await api.get('/admin/discount-offers');
-      // setOffers(response.data);
-      // Mock data
-      setOffers([
-        {
-          id: 1,
-          name: 'Summer Sale',
-          discountPercentage: 10,
-          validFrom: '2024-01-01',
-          validTo: '2024-12-31',
-          availableOnSales: true,
-          availableOnWebsite: true,
-          isActive: true,
-          couponCodes: [
-            { id: 1, code: 'SAVE10', used: false },
-            { id: 2, code: 'SUMMER10', used: true },
-          ],
-        },
-      ]);
-    } catch (error) {
-      console.error('Error fetching offers:', error);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (offers.length > 0 && currentIndex >= 0 && currentIndex < offers.length) {
+      loadOffer(offers[currentIndex]);
+      loadCouponsForOffer(offers[currentIndex].id);
     }
-  };
+  }, [currentIndex]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (editingOffer) {
-        // await api.put(`/admin/discount-offers/${editingOffer.id}`, formData);
-        console.log('Update discount offer:', formData);
-      } else {
-        // await api.post('/admin/discount-offers', formData);
-        console.log('Create discount offer:', formData);
+  const fetchOffers = () => {
+    const stored = localStorage.getItem('discountOffers');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      setOffers(parsed.filter(o => !o.archived));
+      if (parsed.length > 0) {
+        setCurrentIndex(0);
       }
-      setShowForm(false);
-      setEditingOffer(null);
-      resetForm();
-      fetchOffers();
-    } catch (error) {
-      console.error('Error saving offer:', error);
+    } else {
+      handleNew();
     }
   };
 
-  const resetForm = () => {
+  const loadOffer = (offer) => {
+    setFormData({
+      name: offer.name || '',
+      discountPercentage: offer.discountPercentage || 10,
+      startDate: offer.startDate || offer.validFrom || '',
+      endDate: offer.endDate || offer.validTo || '',
+      availableOn: offer.availableOn || 
+        (offer.availableOnSales && offer.availableOnWebsite ? 'both' :
+         offer.availableOnSales ? 'sales' : 'website'),
+      active: offer.active !== undefined ? offer.active : true,
+    });
+  };
+
+  const loadCouponsForOffer = (offerId) => {
+    const stored = localStorage.getItem('couponCodes');
+    if (stored) {
+      const allCoupons = JSON.parse(stored);
+      const offerCoupons = allCoupons.filter(c => c.discountOfferId === offerId);
+      setCoupons(offerCoupons);
+      setCurrentCouponIndex(0);
+      setShowCoupons(false);
+    } else {
+      setCoupons([]);
+      setShowCoupons(false);
+    }
+  };
+
+  const handleNew = () => {
     setFormData({
       name: '',
-      discountPercentage: 0,
-      validFrom: '',
-      validTo: '',
-      availableOnSales: false,
-      availableOnWebsite: false,
-      isActive: true,
+      discountPercentage: 10,
+      startDate: '',
+      endDate: '',
+      availableOn: 'both',
+      active: true,
     });
+    setCurrentIndex(-1);
+    setCoupons([]);
+    setShowCoupons(false);
   };
 
-  const handleEdit = (offer) => {
-    setEditingOffer(offer);
-    setFormData({
-      name: offer.name,
-      discountPercentage: offer.discountPercentage,
-      validFrom: offer.validFrom,
-      validTo: offer.validTo,
-      availableOnSales: offer.availableOnSales,
-      availableOnWebsite: offer.availableOnWebsite,
-      isActive: offer.isActive,
-    });
-    setShowForm(true);
+  const handleSave = () => {
+    const stored = localStorage.getItem('discountOffers');
+    let allOffers = stored ? JSON.parse(stored) : [];
+
+    const offerToSave = {
+      id: currentIndex === -1 ? Date.now() : offers[currentIndex].id,
+      name: formData.name,
+      discountPercentage: formData.discountPercentage,
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      validFrom: formData.startDate,
+      validTo: formData.endDate,
+      availableOn: formData.availableOn,
+      availableOnSales: formData.availableOn === 'both' || formData.availableOn === 'sales',
+      availableOnWebsite: formData.availableOn === 'both' || formData.availableOn === 'website',
+      active: formData.active,
+    };
+
+    if (currentIndex === -1) {
+      allOffers.push(offerToSave);
+    } else {
+      allOffers = allOffers.map(o => o.id === offerToSave.id ? offerToSave : o);
+    }
+
+    localStorage.setItem('discountOffers', JSON.stringify(allOffers));
+    fetchOffers();
   };
 
-  const handleGenerateCoupon = async (offerId) => {
+  const handleGenerateCoupon = () => {
     const code = prompt('Enter coupon code:');
-    if (code) {
-      try {
-        // await api.post(`/admin/discount-offers/${offerId}/coupons`, { code });
-        console.log('Generate coupon:', offerId, code);
-        fetchOffers();
-      } catch (error) {
-        console.error('Error generating coupon:', error);
-      }
+    if (code && offers[currentIndex]) {
+      const stored = localStorage.getItem('couponCodes');
+      let allCoupons = stored ? JSON.parse(stored) : [];
+
+      const newCoupon = {
+        id: Date.now(),
+        discountOfferId: offers[currentIndex].id,
+        code: code.toUpperCase(),
+        used: false,
+        usedAt: null,
+      };
+
+      allCoupons.push(newCoupon);
+      localStorage.setItem('couponCodes', JSON.stringify(allCoupons));
+      loadCouponsForOffer(offers[currentIndex].id);
     }
   };
 
+  const handlePrevious = () => {
+    if (currentIndex > 0) setCurrentIndex(currentIndex - 1);
+  };
+
+  const handleNext = () => {
+    if (currentIndex < offers.length - 1) setCurrentIndex(currentIndex + 1);
+  };
+
+  const handleCouponPrevious = () => {
+    if (currentCouponIndex > 0) setCurrentCouponIndex(currentCouponIndex - 1);
+  };
+
+  const handleCouponNext = () => {
+    if (currentCouponIndex < coupons.length - 1) setCurrentCouponIndex(currentCouponIndex + 1);
+  };
+
+  const isNew = currentIndex === -1;
+  const currentCoupon = coupons[currentCouponIndex];
+
   return (
-    <div>
+    <div className="min-h-screen bg-background">
       <AdminHeader />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Discount Offers & Coupons</h1>
-          <button
-            onClick={() => {
-              setShowForm(true);
-              setEditingOffer(null);
-              resetForm();
-            }}
-            className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700"
-          >
-            Create Discount Offer
-          </button>
+      
+      <main className="container px-6 py-8">
+        {/* Header with New, Generate Coupon, and Coupons Navigation */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button onClick={handleNew} variant="outline">
+              New
+            </Button>
+            {!isNew && (
+              <Button onClick={handleGenerateCoupon} variant="outline">
+                Generate Coupon Codes
+              </Button>
+            )}
+          </div>
+          
+          {!isNew && coupons.length > 0 && (
+            <div className="flex items-center gap-4">
+              <Button
+                variant={showCoupons ? 'default' : 'outline'}
+                onClick={() => {
+                  setShowCoupons(!showCoupons);
+                  if (!showCoupons && coupons.length > 0) {
+                    setCurrentCouponIndex(0);
+                  }
+                }}
+              >
+                Coupons {coupons.length}
+              </Button>
+              {showCoupons && coupons.length > 0 && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleCouponPrevious}
+                    disabled={currentCouponIndex <= 0}
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </Button>
+                  <span className="text-sm text-muted-foreground min-w-[60px] text-center">
+                    {currentCouponIndex + 1} / {coupons.length}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleCouponNext}
+                    disabled={currentCouponIndex >= coupons.length - 1}
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+
+          {offers.length > 0 && !showCoupons && (
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handlePrevious}
+                disabled={currentIndex <= 0}
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </Button>
+              <span className="text-sm text-muted-foreground min-w-[80px] text-center">
+                {isNew ? 'New Offer' : `${currentIndex + 1} / ${offers.length}`}
+              </span>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleNext}
+                disabled={currentIndex >= offers.length - 1}
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Button>
+            </div>
+          )}
         </div>
 
-        {showForm && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-            <h2 className="text-xl font-bold mb-4">
-              {editingOffer ? 'Edit Discount Offer' : 'Create Discount Offer'}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+        <Card className="p-8">
+          {showCoupons && currentCoupon ? (
+            <>
+              <h1 className="text-2xl font-bold mb-6">Coupon Details</h1>
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-                  <input
-                    type="text"
-                    required
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  <label className="text-sm font-medium text-muted-foreground">Code</label>
+                  <p className="text-2xl font-mono font-bold">{currentCoupon.code}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Status</label>
+                  <p className={`inline-block px-3 py-1 rounded-full text-sm ${
+                    currentCoupon.used
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-green-100 text-green-800'
+                  }`}>
+                    {currentCoupon.used ? 'Used' : 'Unused'}
+                  </p>
+                </div>
+                {currentCoupon.usedAt && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Used At</label>
+                    <p>{new Date(currentCoupon.usedAt).toLocaleString()}</p>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold mb-6">Offers</h1>
+
+              <div className="space-y-6 max-w-2xl">
+                {/* Name Field */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Name</label>
+                  <Input
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="10% Discount Coupons"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Discount Percentage *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="100"
-                    required
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    value={formData.discountPercentage}
-                    onChange={(e) => setFormData({ ...formData, discountPercentage: parseFloat(e.target.value) || 0 })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Valid From *</label>
-                  <input
-                    type="date"
-                    required
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    value={formData.validFrom}
-                    onChange={(e) => setFormData({ ...formData, validFrom: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Valid To *</label>
-                  <input
-                    type="date"
-                    required
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    value={formData.validTo}
-                    onChange={(e) => setFormData({ ...formData, validTo: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    className="mr-2"
-                    checked={formData.availableOnSales}
-                    onChange={(e) => setFormData({ ...formData, availableOnSales: e.target.checked })}
-                  />
-                  <span>Available on Sales (manual orders)</span>
-                </label>
-                <label className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    className="mr-2"
-                    checked={formData.availableOnWebsite}
-                    onChange={(e) => setFormData({ ...formData, availableOnWebsite: e.target.checked })}
-                  />
-                  <span>Available on Website (online orders)</span>
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    className="mr-2"
-                    checked={formData.isActive}
-                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                  />
-                  <span>Active</span>
-                </label>
-              </div>
-              <div className="flex gap-4">
-                <button
-                  type="submit"
-                  className="bg-primary-600 text-white px-6 py-2 rounded-md hover:bg-primary-700"
-                >
-                  {editingOffer ? 'Update' : 'Create'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowForm(false);
-                    setEditingOffer(null);
-                    resetForm();
-                  }}
-                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
 
-        {loading ? (
-          <div className="text-center py-12">Loading offers...</div>
-        ) : (
-          <div className="space-y-6">
-            {offers.map((offer) => (
-              <div key={offer.id} className="bg-white rounded-lg border border-gray-200 p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold">{offer.name}</h3>
-                    <p className="text-gray-600">
-                      {offer.discountPercentage}% discount | Valid: {new Date(offer.validFrom).toLocaleDateString()} - {new Date(offer.validTo).toLocaleDateString()}
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Available on: {offer.availableOnSales && 'Sales'} {offer.availableOnSales && offer.availableOnWebsite && '&'} {offer.availableOnWebsite && 'Website'}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleGenerateCoupon(offer.id)}
-                      className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 text-sm"
-                    >
-                      Generate Coupon
-                    </button>
-                    <button
-                      onClick={() => handleEdit(offer)}
-                      className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 text-sm"
-                    >
-                      Edit
-                    </button>
+                {/* Discount Percentage */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Discount Percentage</label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      className="w-32"
+                      value={formData.discountPercentage}
+                      onChange={(e) => setFormData({ ...formData, discountPercentage: parseFloat(e.target.value) || 0 })}
+                    />
+                    <span>%</span>
                   </div>
                 </div>
+
+                {/* Start Date */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Start Date</label>
+                  <Input
+                    type="date"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                  />
+                </div>
+
+                {/* End Date */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">End Date</label>
+                  <Input
+                    type="date"
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                  />
+                </div>
+
+                {/* Available On */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Available On</label>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={formData.availableOn}
+                    onChange={(e) => setFormData({ ...formData, availableOn: e.target.value })}
+                  >
+                    <option value="both">Both</option>
+                    <option value="sales">Sales</option>
+                    <option value="website">Website</option>
+                  </select>
+                </div>
+
+                {/* Active Checkbox */}
                 <div>
-                  <h4 className="font-semibold mb-2">Coupon Codes:</h4>
-                  <div className="space-y-2">
-                    {offer.couponCodes?.map((coupon) => (
-                      <div key={coupon.id} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                        <span className="font-mono">{coupon.code}</span>
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          coupon.used ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                        }`}>
-                          {coupon.used ? 'Used' : 'Unused'}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.active}
+                      onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <span className="text-sm font-medium">Active</span>
+                  </label>
+                </div>
+
+                {/* Save Button */}
+                <div>
+                  <Button onClick={handleSave} disabled={!formData.name}>
+                    Save
+                  </Button>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            </>
+          )}
+        </Card>
       </main>
     </div>
   );
 };
 
 export default DiscountOffers;
-

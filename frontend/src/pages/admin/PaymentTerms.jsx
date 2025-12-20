@@ -1,260 +1,279 @@
 import { useState, useEffect } from 'react';
 import AdminHeader from '../../components/AdminHeader';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import Card from '../../components/ui/Card';
 
 const PaymentTerms = () => {
   const [terms, setTerms] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingTerm, setEditingTerm] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [formData, setFormData] = useState({
     name: '',
-    description: '',
-    days: 0,
-    earlyPaymentDiscount: 0,
-    discountDays: 0,
-    discountComputation: 'base',
+    days: 15,
+    earlyDiscount: false,
+    earlyDiscountPercent: 2,
+    earlyDiscountDays: 10,
+    active: true,
   });
 
   useEffect(() => {
     fetchTerms();
   }, []);
 
-  const fetchTerms = async () => {
-    try {
-      // const response = await api.get('/admin/payment-terms');
-      // setTerms(response.data);
-      // Mock data
-      setTerms([
+  useEffect(() => {
+    if (terms.length > 0 && currentIndex >= 0 && currentIndex < terms.length) {
+      loadTerm(terms[currentIndex]);
+    }
+  }, [currentIndex]);
+
+  const fetchTerms = () => {
+    const stored = localStorage.getItem('paymentTerms');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      setTerms(parsed.filter(t => !t.archived));
+      if (parsed.length > 0) {
+        setCurrentIndex(0);
+      }
+    } else {
+      const defaultTerms = [
         {
           id: 1,
-          name: 'Immediate Payment',
-          description: 'Payment due immediately',
-          days: 0,
-          earlyPaymentDiscount: 0,
-          discountDays: 0,
-          discountComputation: 'base',
+          name: '15 Days',
+          days: 15,
+          earlyDiscount: true,
+          earlyDiscountPercent: 2,
+          earlyDiscountDays: 10,
+          active: true,
         },
         {
           id: 2,
-          name: 'Net 30',
-          description: 'Payment due within 30 days',
-          days: 30,
-          earlyPaymentDiscount: 2,
-          discountDays: 10,
-          discountComputation: 'base',
+          name: 'Immediate Payment',
+          days: 0,
+          earlyDiscount: false,
+          earlyDiscountPercent: 0,
+          earlyDiscountDays: 0,
+          active: true,
         },
-      ]);
-    } catch (error) {
-      console.error('Error fetching payment terms:', error);
-    } finally {
-      setLoading(false);
+      ];
+      localStorage.setItem('paymentTerms', JSON.stringify(defaultTerms));
+      setTerms(defaultTerms);
+      setCurrentIndex(0);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (editingTerm) {
-        // await api.put(`/admin/payment-terms/${editingTerm.id}`, formData);
-        console.log('Update payment term:', formData);
-      } else {
-        // await api.post('/admin/payment-terms', formData);
-        console.log('Create payment term:', formData);
-      }
-      setShowForm(false);
-      setEditingTerm(null);
-      resetForm();
-      fetchTerms();
-    } catch (error) {
-      console.error('Error saving payment term:', error);
-    }
-  };
-
-  const resetForm = () => {
+  const handleNew = () => {
     setFormData({
       name: '',
-      description: '',
-      days: 0,
-      earlyPaymentDiscount: 0,
-      discountDays: 0,
-      discountComputation: 'base',
+      days: 15,
+      earlyDiscount: false,
+      earlyDiscountPercent: 2,
+      earlyDiscountDays: 10,
+      active: true,
     });
+    setCurrentIndex(-1);
   };
 
-  const handleEdit = (term) => {
-    setEditingTerm(term);
+  const loadTerm = (term) => {
     setFormData({
       name: term.name,
-      description: term.description || '',
-      days: term.days,
-      earlyPaymentDiscount: term.earlyPaymentDiscount,
-      discountDays: term.discountDays,
-      discountComputation: term.discountComputation,
+      days: term.days || 15,
+      earlyDiscount: term.earlyDiscount || false,
+      earlyDiscountPercent: term.earlyDiscountPercent || 2,
+      earlyDiscountDays: term.earlyDiscountDays || 10,
+      active: term.active !== undefined ? term.active : true,
     });
-    setShowForm(true);
   };
 
+  const calculateDiscountAmount = () => {
+    // This would be calculated based on order amount, for preview we'll use 5000 as example
+    const baseAmount = 5000;
+    if (formData.earlyDiscount && formData.earlyDiscountPercent > 0) {
+      return (baseAmount * formData.earlyDiscountPercent) / 100;
+    }
+    return 0;
+  };
+
+  const calculateDiscountDate = () => {
+    if (formData.earlyDiscount && formData.earlyDiscountDays > 0) {
+      const date = new Date();
+      date.setDate(date.getDate() + formData.earlyDiscountDays);
+      return date.toLocaleDateString('en-GB');
+    }
+    return '';
+  };
+
+  const handleSave = () => {
+    const stored = localStorage.getItem('paymentTerms');
+    let allTerms = stored ? JSON.parse(stored) : [];
+
+    const termToSave = {
+      id: currentIndex === -1 ? Date.now() : terms[currentIndex].id,
+      name: formData.name,
+      days: formData.days,
+      earlyDiscount: formData.earlyDiscount,
+      earlyDiscountPercent: formData.earlyDiscountPercent,
+      earlyDiscountDays: formData.earlyDiscountDays,
+      active: formData.active,
+    };
+
+    if (currentIndex === -1) {
+      allTerms.push(termToSave);
+    } else {
+      allTerms = allTerms.map(t => t.id === termToSave.id ? termToSave : t);
+    }
+
+    localStorage.setItem('paymentTerms', JSON.stringify(allTerms));
+    fetchTerms();
+  };
+
+  const handlePrevious = () => {
+    if (currentIndex > 0) setCurrentIndex(currentIndex - 1);
+  };
+
+  const handleNext = () => {
+    if (currentIndex < terms.length - 1) setCurrentIndex(currentIndex + 1);
+  };
+
+  const isNew = currentIndex === -1;
+
   return (
-    <div>
+    <div className="min-h-screen bg-background">
       <AdminHeader />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Payment Terms</h1>
-          <button
-            onClick={() => {
-              setShowForm(true);
-              setEditingTerm(null);
-              resetForm();
-            }}
-            className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700"
-          >
-            Create Payment Term
-          </button>
+      
+      <main className="container px-6 py-8">
+        {/* Header with New and Navigation */}
+        <div className="flex items-center justify-between mb-6">
+          <Button onClick={handleNew} variant="outline">
+            New
+          </Button>
+          {terms.length > 0 && (
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handlePrevious}
+                disabled={currentIndex <= 0}
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </Button>
+              <span className="text-sm text-muted-foreground min-w-[80px] text-center">
+                {isNew ? 'New Term' : `${currentIndex + 1} / ${terms.length}`}
+              </span>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleNext}
+                disabled={currentIndex >= terms.length - 1}
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Button>
+            </div>
+          )}
         </div>
 
-        {showForm && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-            <h2 className="text-xl font-bold mb-4">
-              {editingTerm ? 'Edit Payment Term' : 'Create Payment Term'}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-                  <input
-                    type="text"
-                    required
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Days *</label>
-                  <input
-                    type="number"
-                    required
-                    min="0"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    value={formData.days}
-                    onChange={(e) => setFormData({ ...formData, days: parseInt(e.target.value) || 0 })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Early Payment Discount (%)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="100"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    value={formData.earlyPaymentDiscount}
-                    onChange={(e) => setFormData({ ...formData, earlyPaymentDiscount: parseFloat(e.target.value) || 0 })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Discount Days</label>
-                  <input
-                    type="number"
-                    min="0"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    value={formData.discountDays}
-                    onChange={(e) => setFormData({ ...formData, discountDays: parseInt(e.target.value) || 0 })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Discount Computation</label>
-                  <select
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    value={formData.discountComputation}
-                    onChange={(e) => setFormData({ ...formData, discountComputation: e.target.value })}
-                  >
-                    <option value="base">Base Amount</option>
-                    <option value="total">Total Amount</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea
-                  rows="3"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-              </div>
-              <div className="bg-gray-50 p-4 rounded-md">
-                <p className="text-sm text-gray-600">
-                  <strong>Example Preview:</strong> {formData.name} - Payment due within {formData.days} days.
-                  {formData.earlyPaymentDiscount > 0 && (
-                    <> Early payment discount of {formData.earlyPaymentDiscount}% if paid within {formData.discountDays} days (computed on {formData.discountComputation}).</>
-                  )}
-                </p>
-              </div>
-              <div className="flex gap-4">
-                <button
-                  type="submit"
-                  className="bg-primary-600 text-white px-6 py-2 rounded-md hover:bg-primary-700"
-                >
-                  {editingTerm ? 'Update' : 'Create'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowForm(false);
-                    setEditingTerm(null);
-                    resetForm();
-                  }}
-                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+        <Card className="p-8">
+          <h1 className="text-2xl font-bold mb-6">Payment Terms</h1>
 
-        {loading ? (
-          <div className="text-center py-12">Loading payment terms...</div>
-        ) : (
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Days</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Early Payment Discount</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Discount Days</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Computation</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {terms.map((term) => (
-                  <tr key={term.id}>
-                    <td className="px-6 py-4 font-semibold">{term.name}</td>
-                    <td className="px-6 py-4">{term.days}</td>
-                    <td className="px-6 py-4">{term.earlyPaymentDiscount}%</td>
-                    <td className="px-6 py-4">{term.discountDays}</td>
-                    <td className="px-6 py-4 capitalize">{term.discountComputation}</td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => handleEdit(term)}
-                        className="text-primary-600 hover:text-primary-700"
-                      >
-                        Edit
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-6 max-w-2xl">
+            {/* Name Field */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Name</label>
+              <Input
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="15 Days"
+              />
+            </div>
+
+            {/* Days Field */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Days</label>
+              <Input
+                type="number"
+                value={formData.days}
+                onChange={(e) => setFormData({ ...formData, days: parseInt(e.target.value) || 0 })}
+                placeholder="15"
+              />
+            </div>
+
+            {/* Early Discount Checkbox */}
+            <div className="space-y-4">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={formData.earlyDiscount}
+                  onChange={(e) => setFormData({ ...formData, earlyDiscount: e.target.checked })}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <span className="text-sm font-medium">Early Discount</span>
+              </label>
+
+              {formData.earlyDiscount && (
+                <div className="ml-6 space-y-4 border-l-2 pl-4">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      className="w-20"
+                      value={formData.earlyDiscountPercent}
+                      onChange={(e) => setFormData({ ...formData, earlyDiscountPercent: parseFloat(e.target.value) || 0 })}
+                    />
+                    <span>% if paid within</span>
+                    <Input
+                      type="number"
+                      className="w-20"
+                      value={formData.earlyDiscountDays}
+                      onChange={(e) => setFormData({ ...formData, earlyDiscountDays: parseInt(e.target.value) || 0 })}
+                    />
+                    <span>days</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Example Preview */}
+            <div className="bg-muted/50 p-4 rounded-lg border space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Example Preview:</p>
+              <div className="space-y-1">
+                <p className="text-sm">
+                  Payment Terms: {formData.days} days
+                </p>
+                {formData.earlyDiscount && formData.earlyDiscountPercent > 0 && (
+                  <p className="text-sm">
+                    Early payment discount: {calculateDiscountAmount()} if paid before {calculateDiscountDate()}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Active Checkbox */}
+            <div>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={formData.active}
+                  onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <span className="text-sm font-medium">Active</span>
+              </label>
+            </div>
+
+            {/* Save Button */}
+            <div>
+              <Button onClick={handleSave} disabled={!formData.name}>
+                Save
+              </Button>
+            </div>
           </div>
-        )}
+        </Card>
       </main>
     </div>
   );
 };
 
 export default PaymentTerms;
-
