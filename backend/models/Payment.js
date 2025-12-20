@@ -19,6 +19,15 @@ const Payment = sequelize.define('Payment', {
     unique: true,
     comment: 'Unique payment number (e.g., PAY-001)',
   },
+  contactId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'contacts',
+      key: 'id',
+    },
+    comment: 'Contact (customer or vendor)',
+  },
   customerInvoiceId: {
     type: DataTypes.INTEGER,
     allowNull: true,

@@ -252,5 +252,4 @@ ON CONFLICT DO NOTHING;
 -- Insert default setting for automatic invoicing
 INSERT INTO settings (key, value)
 VALUES ('automatic_invoicing', 'false')
-ON CONFLICT (key) DO NOTHING;
-
+ON CONFLICT (key) DO NOTHING;4

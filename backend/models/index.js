@@ -35,6 +35,10 @@ const Payment = require('./Payment');
 User.hasOne(Contact, { foreignKey: 'userId', as: 'contact' });
 Contact.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
+// Contact - Payment (one-to-many)
+Contact.hasMany(Payment, { foreignKey: 'contactId', as: 'payments' });
+Payment.belongsTo(Contact, { foreignKey: 'contactId', as: 'contact' });
+
 // Contact - SaleOrder (one-to-many)
 Contact.hasMany(SaleOrder, { foreignKey: 'contactId', as: 'saleOrders' });
 SaleOrder.belongsTo(Contact, { foreignKey: 'contactId', as: 'contact' });
@@ -46,6 +50,8 @@ PurchaseOrder.belongsTo(Contact, { foreignKey: 'contactId', as: 'contact' });
 // Contact - CustomerInvoice (one-to-many)
 Contact.hasMany(CustomerInvoice, { foreignKey: 'contactId', as: 'customerInvoices' });
 CustomerInvoice.belongsTo(Contact, { foreignKey: 'contactId', as: 'contact' });
+
+// CustomerInvoice - CustomerInvoiceItem (one-to-many) - Note: Using SaleOrderLine for items
 
 // Contact - VendorBill (one-to-many)
 Contact.hasMany(VendorBill, { foreignKey: 'contactId', as: 'vendorBills' });
@@ -87,13 +93,13 @@ PurchaseOrderLine.belongsTo(PurchaseOrder, { foreignKey: 'purchaseOrderId', as: 
 Product.hasMany(PurchaseOrderLine, { foreignKey: 'productId', as: 'purchaseOrderLines' });
 PurchaseOrderLine.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
 
-// SaleOrder - CustomerInvoice (one-to-one)
-SaleOrder.hasOne(CustomerInvoice, { foreignKey: 'saleOrderId', as: 'invoice' });
-CustomerInvoice.belongsTo(SaleOrder, { foreignKey: 'saleOrderId', as: 'saleOrder' });
-
 // PurchaseOrder - VendorBill (one-to-one)
 PurchaseOrder.hasOne(VendorBill, { foreignKey: 'purchaseOrderId', as: 'bill' });
 VendorBill.belongsTo(PurchaseOrder, { foreignKey: 'purchaseOrderId', as: 'purchaseOrder' });
+
+// SaleOrder - CustomerInvoice (one-to-one)
+SaleOrder.hasOne(CustomerInvoice, { foreignKey: 'saleOrderId', as: 'invoice' });
+CustomerInvoice.belongsTo(SaleOrder, { foreignKey: 'saleOrderId', as: 'saleOrder' });
 
 // CustomerInvoice - Payment (one-to-many)
 CustomerInvoice.hasMany(Payment, { foreignKey: 'customerInvoiceId', as: 'payments' });
