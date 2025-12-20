@@ -1,88 +1,69 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-/**
- * Product Model
- * Represents products in the system
- * Used in both sales and purchases
- */
 const Product = sequelize.define('Product', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
     primaryKey: true,
-    autoIncrement: true,
+    defaultValue: DataTypes.UUIDV4, // uuid_generate_v4() equivalent at ORM level [web:5]
   },
-  name: {
+  product_name: {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  description: {
-    type: DataTypes.TEXT,
-    allowNull: true,
+  product_category: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
   },
-  category: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'Product category (e.g., Shirts, Pants, Shoes)',
-  },
-  type: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'Product type (e.g., T-Shirt, Jeans)',
+  product_type: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
   },
   material: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(100),
     allowNull: true,
-    comment: 'Material (e.g., Cotton, Polyester)',
   },
   colors: {
-    type: DataTypes.STRING,
+    type: DataTypes.ARRAY(DataTypes.TEXT), // TEXT[] in Postgres [web:19][web:288]
     allowNull: true,
-    comment: 'Comma-separated colors (e.g., "Red,Blue,Green")',
   },
-  sizes: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'Comma-separated sizes (e.g., "S,M,L,XL")',
-  },
-  salesPrice: {
-    type: DataTypes.DECIMAL(10, 2),
+  current_stock: {
+    type: DataTypes.INTEGER,
     allowNull: false,
     defaultValue: 0,
-    comment: 'Selling price to customers',
   },
-  purchasePrice: {
+  sales_price: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
-    defaultValue: 0,
-    comment: 'Purchase price from vendors',
   },
-  taxRate: {
+  sales_tax: {
     type: DataTypes.DECIMAL(5, 2),
     allowNull: false,
     defaultValue: 0,
-    comment: 'Tax rate percentage (e.g., 18.00 for 18%)',
   },
-  stockQuantity: {
-    type: DataTypes.INTEGER,
+  purchase_price: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  purchase_tax: {
+    type: DataTypes.DECIMAL(5, 2),
     allowNull: false,
     defaultValue: 0,
-    comment: 'Current stock quantity',
   },
   published: {
     type: DataTypes.BOOLEAN,
+    allowNull: false,
     defaultValue: false,
-    comment: 'Whether product is visible on website',
   },
-  imageUrl: {
-    type: DataTypes.STRING,
+  images: {
+    type: DataTypes.ARRAY(DataTypes.TEXT), // TEXT[] for image URLs/paths [web:288][web:296]
     allowNull: true,
-    comment: 'Main product image URL',
   },
 }, {
   tableName: 'products',
   timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at', // map to existing snake_case columns [web:15][web:291]
 });
 
 module.exports = Product;
-

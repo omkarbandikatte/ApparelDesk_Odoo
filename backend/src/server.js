@@ -6,10 +6,15 @@ const sequelize = require('../config/database');
 // Import models to ensure relationships are loaded
 require('../models');
 
+// Serve uploaded images
+
+
+
 // Import routes
 const authRoutes = require('../routes/auth');
 const productRoutes = require('../routes/products');
 const contactRoutes = require('../routes/contacts');
+const userRoutes = require('../routes/user')
 const saleOrderRoutes = require('../routes/saleOrders');
 const couponRoutes = require('../routes/coupons');
 const invoiceRoutes = require('../routes/invoices');
@@ -22,6 +27,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static('uploads'));
 
 // Health check
 app.get('/health', (req, res) => {
@@ -32,6 +38,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/contacts', contactRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/sale-orders', saleOrderRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/invoices', invoiceRoutes);
