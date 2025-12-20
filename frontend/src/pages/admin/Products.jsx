@@ -1,23 +1,23 @@
 import { useState, useEffect } from 'react';
 import AdminHeader from '../../components/AdminHeader';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import Card from '../../components/ui/Card';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    description: '',
-    category: '',
     type: '',
-    material: '',
-    colors: '',
-    sizes: '',
     salesPrice: '',
     purchasePrice: '',
     taxRate: '',
+    material: '',
+    color: '',
     stockQuantity: '',
+    images: '',
     published: false,
   });
 
@@ -25,49 +25,45 @@ const Products = () => {
     fetchProducts();
   }, []);
 
-  const fetchProducts = async () => {
+  useEffect(() => {
+    if (products.length > 0 && currentIndex >= 0 && currentIndex < products.length) {
+      loadProduct(products[currentIndex]);
+    }
+  }, [currentIndex, products]);
+
+  const fetchProducts = () => {
     try {
-      // const response = await api.get('/admin/products');
-      // setProducts(response.data);
-      
-      // Get products from localStorage (mock storage)
       const storedProducts = localStorage.getItem('products');
       if (storedProducts) {
-        setProducts(JSON.parse(storedProducts));
+        const parsed = JSON.parse(storedProducts);
+        setProducts(parsed.filter(p => !p.archived));
       } else {
-        // Initialize with default mock data if no products exist
         const defaultProducts = [
           {
             id: 1,
             name: 'Classic T-Shirt',
-            category: 'Shirts',
+            type: 'T-Shirt',
             salesPrice: 29.99,
             purchasePrice: 15.00,
             taxRate: 18,
-            stockQuantity: 50,
-            published: true,
-            description: 'A comfortable classic t-shirt',
-            type: 'T-Shirt',
             material: 'Cotton',
-            colors: 'Red,Blue,Green',
-            sizes: 'S,M,L,XL',
-            imageUrl: 'https://via.placeholder.com/300',
+            color: 'Red,Blue,Green',
+            stockQuantity: 50,
+            images: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500',
+            published: true,
           },
           {
             id: 2,
             name: 'Denim Jeans',
-            category: 'Pants',
+            type: 'Jeans',
             salesPrice: 79.99,
             purchasePrice: 40.00,
             taxRate: 18,
-            stockQuantity: 30,
-            published: true,
-            description: 'Classic denim jeans',
-            type: 'Jeans',
             material: 'Denim',
-            colors: 'Blue,Black',
-            sizes: 'S,M,L,XL',
-            imageUrl: 'https://via.placeholder.com/300',
+            color: 'Blue,Black',
+            stockQuantity: 30,
+            images: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=500',
+            published: true,
           },
         ];
         localStorage.setItem('products', JSON.stringify(defaultProducts));
@@ -80,311 +76,308 @@ const Products = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      // Get existing products from localStorage
-      const storedProducts = localStorage.getItem('products');
-      let allProducts = storedProducts ? JSON.parse(storedProducts) : [];
-      
-      if (editingProduct) {
-        // Update existing product
-        // await api.put(`/admin/products/${editingProduct.id}`, formData);
-        const updatedProducts = allProducts.map((p) =>
-          p.id === editingProduct.id
-            ? {
-                ...p,
-                ...formData,
-                salesPrice: parseFloat(formData.salesPrice),
-                purchasePrice: parseFloat(formData.purchasePrice),
-                taxRate: parseFloat(formData.taxRate) || 0,
-                stockQuantity: parseInt(formData.stockQuantity) || 0,
-              }
-            : p
-        );
-        localStorage.setItem('products', JSON.stringify(updatedProducts));
-      } else {
-        // Create new product
-        // await api.post('/admin/products', formData);
-        const newProduct = {
-          id: Date.now(), // Generate unique ID
-          name: formData.name,
-          description: formData.description || '',
-          category: formData.category || '',
-          type: formData.type || '',
-          material: formData.material || '',
-          colors: formData.colors || '',
-          sizes: formData.sizes || '',
-          salesPrice: parseFloat(formData.salesPrice),
-          purchasePrice: parseFloat(formData.purchasePrice),
-          taxRate: parseFloat(formData.taxRate) || 0,
-          stockQuantity: parseInt(formData.stockQuantity) || 0,
-          published: formData.published,
-          imageUrl: 'https://via.placeholder.com/300', // Default placeholder
-        };
-        allProducts.push(newProduct);
-        localStorage.setItem('products', JSON.stringify(allProducts));
-      }
-      
-      setShowForm(false);
-      setEditingProduct(null);
-      resetForm();
-      fetchProducts();
-    } catch (error) {
-      console.error('Error saving product:', error);
-    }
+  const loadProduct = (product) => {
+    setFormData({
+      name: product.name || '',
+      type: product.type || '',
+      salesPrice: product.salesPrice || '',
+      purchasePrice: product.purchasePrice || '',
+      taxRate: product.taxRate || '',
+      material: product.material || '',
+      color: product.color || product.colors || '',
+      stockQuantity: product.stockQuantity || '',
+      images: product.images || product.imageUrl || '',
+      published: product.published || false,
+    });
   };
 
-  const resetForm = () => {
+  const handleNew = () => {
     setFormData({
       name: '',
-      description: '',
-      category: '',
       type: '',
-      material: '',
-      colors: '',
-      sizes: '',
       salesPrice: '',
       purchasePrice: '',
       taxRate: '',
+      material: '',
+      color: '',
       stockQuantity: '',
+      images: '',
       published: false,
     });
+    setCurrentIndex(-1); // -1 indicates new product
   };
 
-  const handleEdit = (product) => {
-    setEditingProduct(product);
-    setFormData({
-      name: product.name,
-      description: product.description || '',
-      category: product.category || '',
-      type: product.type || '',
-      material: product.material || '',
-      colors: product.colors || '',
-      sizes: product.sizes || '',
-      salesPrice: product.salesPrice,
-      purchasePrice: product.purchasePrice,
-      taxRate: product.taxRate,
-      stockQuantity: product.stockQuantity,
-      published: product.published,
-    });
-    setShowForm(true);
+  const handleSave = () => {
+    const storedProducts = localStorage.getItem('products');
+    let allProducts = storedProducts ? JSON.parse(storedProducts) : [];
+
+    if (currentIndex === -1) {
+      // Create new product
+      const newProduct = {
+        id: Date.now(),
+        name: formData.name,
+        type: formData.type,
+        salesPrice: parseFloat(formData.salesPrice) || 0,
+        purchasePrice: parseFloat(formData.purchasePrice) || 0,
+        taxRate: parseFloat(formData.taxRate) || 0,
+        material: formData.material,
+        color: formData.color,
+        stockQuantity: parseInt(formData.stockQuantity) || 0,
+        images: formData.images,
+        imageUrl: formData.images,
+        published: formData.published,
+      };
+      allProducts.push(newProduct);
+      localStorage.setItem('products', JSON.stringify(allProducts));
+      setProducts([...allProducts]);
+      setCurrentIndex(allProducts.length - 1);
+    } else {
+      // Update existing product
+      const updatedProducts = allProducts.map((p, index) =>
+        index === currentIndex
+          ? {
+              ...p,
+              name: formData.name,
+              type: formData.type,
+              salesPrice: parseFloat(formData.salesPrice) || 0,
+              purchasePrice: parseFloat(formData.purchasePrice) || 0,
+              taxRate: parseFloat(formData.taxRate) || 0,
+              material: formData.material,
+              color: formData.color,
+              stockQuantity: parseInt(formData.stockQuantity) || 0,
+              images: formData.images,
+              imageUrl: formData.images,
+              published: formData.published,
+            }
+          : p
+      );
+      localStorage.setItem('products', JSON.stringify(updatedProducts));
+      setProducts(updatedProducts.filter(p => !p.archived));
+    }
   };
+
+  const handleArchive = () => {
+    if (currentIndex === -1 || currentIndex >= products.length) return;
+
+    const storedProducts = localStorage.getItem('products');
+    let allProducts = storedProducts ? JSON.parse(storedProducts) : [];
+    
+    const currentProduct = products[currentIndex];
+    allProducts = allProducts.map(p =>
+      p.id === currentProduct.id ? { ...p, archived: true } : p
+    );
+    
+    localStorage.setItem('products', JSON.stringify(allProducts));
+    const filtered = allProducts.filter(p => !p.archived);
+    setProducts(filtered);
+    
+    if (currentIndex >= filtered.length && filtered.length > 0) {
+      setCurrentIndex(filtered.length - 1);
+    } else if (filtered.length === 0) {
+      setCurrentIndex(-1);
+      handleNew();
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentIndex < products.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  };
+
+  const currentProduct = currentIndex >= 0 && currentIndex < products.length ? products[currentIndex] : null;
+  const isNew = currentIndex === -1;
+
+  if (loading) {
+    return (
+      <div>
+        <AdminHeader />
+        <div className="text-center py-12">Loading products...</div>
+      </div>
+    );
+  }
 
   return (
-    <div>
+    <div className="min-h-screen bg-background">
       <AdminHeader />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Products Management</h1>
-          <button
-            onClick={() => {
-              setShowForm(true);
-              setEditingProduct(null);
-              resetForm();
-            }}
-            className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700"
-          >
-            Create Product
-          </button>
+      
+      <main className="container px-6 py-8">
+        {/* Action Buttons Bar */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button onClick={handleNew} variant="outline">
+              New
+            </Button>
+            <Button onClick={handleSave} disabled={!formData.name}>
+              {isNew ? 'Save' : 'Confirm'}
+            </Button>
+            {!isNew && (
+              <Button onClick={handleArchive} variant="destructive">
+                Archive
+              </Button>
+            )}
+          </div>
+
+          {/* Navigation Arrows */}
+          {products.length > 0 && (
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handlePrevious}
+                disabled={currentIndex <= 0}
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </Button>
+              <span className="text-sm text-muted-foreground min-w-[80px] text-center">
+                {isNew ? 'New Product' : `${currentIndex + 1} / ${products.length}`}
+              </span>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleNext}
+                disabled={currentIndex >= products.length - 1}
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Button>
+            </div>
+          )}
         </div>
 
-        {showForm && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-            <h2 className="text-xl font-bold mb-4">
-              {editingProduct ? 'Edit Product' : 'Create Product'}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-                  <input
-                    type="text"
-                    required
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Material</label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    value={formData.material}
-                    onChange={(e) => setFormData({ ...formData, material: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Colors (comma-separated)</label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    value={formData.colors}
-                    onChange={(e) => setFormData({ ...formData, colors: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Sizes (comma-separated)</label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    value={formData.sizes}
-                    onChange={(e) => setFormData({ ...formData, sizes: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Sales Price *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    value={formData.salesPrice}
-                    onChange={(e) => setFormData({ ...formData, salesPrice: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Purchase Price *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    value={formData.purchasePrice}
-                    onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tax Rate (%)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    value={formData.taxRate}
-                    onChange={(e) => setFormData({ ...formData, taxRate: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock Quantity</label>
-                  <input
-                    type="number"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    value={formData.stockQuantity}
-                    onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea
-                  rows="3"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+        {/* Product Form */}
+        <Card className="p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Product Name *</label>
+                <Input
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Enter product name"
                 />
               </div>
-              <div>
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    className="mr-2"
-                    checked={formData.published}
-                    onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Product Type</label>
+                <Input
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  placeholder="e.g., T-Shirt, Jeans"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Sales Price *</label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={formData.salesPrice}
+                  onChange={(e) => setFormData({ ...formData, salesPrice: e.target.value })}
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Purchase Price *</label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={formData.purchasePrice}
+                  onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })}
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Tax Rate (%)</label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={formData.taxRate}
+                  onChange={(e) => setFormData({ ...formData, taxRate: e.target.value })}
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Material</label>
+                <Input
+                  value={formData.material}
+                  onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+                  placeholder="e.g., Cotton, Denim"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Color</label>
+                <Input
+                  value={formData.color}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                  placeholder="e.g., Red, Blue, Green"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Current Stock</label>
+                <Input
+                  type="number"
+                  value={formData.stockQuantity}
+                  onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
+                  placeholder="0"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Images (URL)</label>
+                <Input
+                  value={formData.images}
+                  onChange={(e) => setFormData({ ...formData, images: e.target.value })}
+                  placeholder="https://example.com/image.jpg"
+                />
+                {formData.images && (
+                  <img
+                    src={formData.images}
+                    alt="Product preview"
+                    className="mt-2 w-full h-48 object-cover rounded-md border"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
                   />
-                  <span>Published (visible on website)</span>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-2 pt-4">
+                <input
+                  type="checkbox"
+                  id="published"
+                  checked={formData.published}
+                  onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <label htmlFor="published" className="text-sm font-medium">
+                  Published (if yes, display on website)
                 </label>
               </div>
-              <div className="flex gap-4">
-                <button
-                  type="submit"
-                  className="bg-primary-600 text-white px-6 py-2 rounded-md hover:bg-primary-700"
-                >
-                  {editingProduct ? 'Update' : 'Create'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowForm(false);
-                    setEditingProduct(null);
-                    resetForm();
-                  }}
-                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
-        )}
-
-        {loading ? (
-          <div className="text-center py-12">Loading products...</div>
-        ) : (
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sales Price</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Purchase Price</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Published</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {products.map((product) => (
-                  <tr key={product.id}>
-                    <td className="px-6 py-4 font-semibold">{product.name}</td>
-                    <td className="px-6 py-4">{product.category}</td>
-                    <td className="px-6 py-4">${product.salesPrice.toFixed(2)}</td>
-                    <td className="px-6 py-4">${product.purchasePrice.toFixed(2)}</td>
-                    <td className="px-6 py-4">{product.stockQuantity}</td>
-                    <td className="px-6 py-4">
-                      {product.published ? (
-                        <span className="text-green-600">Yes</span>
-                      ) : (
-                        <span className="text-gray-400">No</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => handleEdit(product)}
-                        className="text-primary-600 hover:text-primary-700"
-                      >
-                        Edit
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        </Card>
       </main>
     </div>
   );
 };
 
 export default Products;
-
