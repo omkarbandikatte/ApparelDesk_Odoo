@@ -32,8 +32,13 @@ const Payment = require('./Payment');
 // Define relationships
 
 // User - Contact (one-to-one)
-User.hasOne(Contact, { foreignKey: 'userId', as: 'contact' });
-Contact.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+// User.hasOne(Contact, { foreignKey: 'userId', as: 'contact' });
+// Contact.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+// define associations// models/index.js (or wherever)
+User.hasMany(Contact, { foreignKey: 'user_id' });
+Contact.belongsTo(User, { foreignKey: 'user_id' });
+
 
 // Contact - Payment (one-to-many)
 Contact.hasMany(Payment, { foreignKey: 'contactId', as: 'payments' });

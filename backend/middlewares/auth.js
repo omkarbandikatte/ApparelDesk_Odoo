@@ -26,21 +26,26 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-// Middleware to check if user is admin
+// Middleware to check if user is admin (internal)
 const requireAdmin = (req, res, next) => {
-  if (!req.user || !req.user.isAdmin) {
-    return res.status(403).json({ success: false, error: 'Admin access required' });
+  if (!req.user || req.user.role !== 'internal') {
+    return res
+      .status(403)
+      .json({ success: false, error: 'Admin access required' });
   }
   next();
 };
 
-// Middleware to check if user is customer (not admin)
+// Middleware to check if user is customer (portal)
 const requireCustomer = (req, res, next) => {
-  if (!req.user || req.user.isAdmin) {
-    return res.status(403).json({ success: false, error: 'Customer access required' });
+  if (!req.user || req.user.role !== 'portal') {
+    return res
+      .status(403)
+      .json({ success: false, error: 'Customer access required' });
   }
   next();
 };
+
 
 module.exports = {
   authenticate,
