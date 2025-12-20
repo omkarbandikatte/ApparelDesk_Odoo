@@ -95,8 +95,8 @@ const VendorBills = () => {
                         {bill.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4">${bill.total.toFixed(2)}</td>
-                    <td className="px-6 py-4">${bill.paidAmount.toFixed(2)}</td>
+                    <td className="px-6 py-4">₹{bill.total.toFixed(2)}</td>
+                    <td className="px-6 py-4">₹{bill.paidAmount.toFixed(2)}</td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
                         {bill.status === 'draft' && (

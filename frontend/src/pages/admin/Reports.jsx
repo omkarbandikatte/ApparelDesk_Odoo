@@ -113,7 +113,7 @@ const Reports = () => {
                     <tr key={index}>
                       <td className="px-6 py-4 font-semibold">{row.product || row.customer || row.vendor}</td>
                       <td className="px-6 py-4">{row.quantity}</td>
-                      <td className="px-6 py-4">${row.amount.toFixed(2)}</td>
+                      <td className="px-6 py-4">₹{row.amount.toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>

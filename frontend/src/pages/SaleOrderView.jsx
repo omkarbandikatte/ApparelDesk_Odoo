@@ -107,8 +107,8 @@ const SaleOrderView = () => {
               <tr key={line.id}>
                 <td className="px-4 py-2">{line.product.name}</td>
                 <td className="px-4 py-2">{line.quantity}</td>
-                <td className="px-4 py-2">${line.unitPrice.toFixed(2)}</td>
-                <td className="px-4 py-2">${(line.lineTotal + line.taxAmount).toFixed(2)}</td>
+                <td className="px-4 py-2">₹{line.unitPrice.toFixed(2)}</td>
+                <td className="px-4 py-2">₹{(line.lineTotal + line.taxAmount).toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
@@ -120,19 +120,19 @@ const SaleOrderView = () => {
           <div className="w-64 space-y-2">
             <div className="flex justify-between">
               <span>Subtotal:</span>
-              <span>${order.subtotal.toFixed(2)}</span>
+              <span>₹{order.subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>Tax:</span>
-              <span>${order.taxAmount.toFixed(2)}</span>
+              <span>₹{order.taxAmount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>Discount:</span>
-              <span>${order.discountAmount.toFixed(2)}</span>
+              <span>₹{order.discountAmount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-bold text-lg border-t pt-2">
               <span>Total:</span>
-              <span>${order.total.toFixed(2)}</span>
+              <span>₹{order.total.toFixed(2)}</span>
             </div>
           </div>
         </div>

@@ -81,7 +81,7 @@ const SaleOrders = () => {
                       {order.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4">${order.total.toFixed(2)}</td>
+                  <td className="px-6 py-4">₹{order.total.toFixed(2)}</td>
                   <td className="px-6 py-4">
                     <Link
                       to={`/my-account/sale-orders/${order.id}`}

@@ -90,12 +90,12 @@ const Invoices = () => {
                       {invoice.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4">${invoice.total.toFixed(2)}</td>
+                  <td className="px-6 py-4">₹{invoice.total.toFixed(2)}</td>
                   <td className="px-6 py-4">
                     {invoice.paidAmount > 0 ? (
-                      <span className="text-green-600">${invoice.paidAmount.toFixed(2)}</span>
+                      <span className="text-green-600">₹{invoice.paidAmount.toFixed(2)}</span>
                     ) : (
-                      <span className="text-gray-400">$0.00</span>
+                      <span className="text-gray-400">₹0.00</span>
                     )}
                   </td>
                   <td className="px-6 py-4">

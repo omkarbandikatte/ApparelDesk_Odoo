@@ -141,10 +141,10 @@ const InvoiceView = () => {
               <tr key={line.id}>
                 <td className="px-4 py-3">{line.product.name}</td>
                 <td className="px-4 py-3">{line.quantity}</td>
-                <td className="px-4 py-3">${line.unitPrice.toFixed(2)}</td>
+                <td className="px-4 py-3">₹{line.unitPrice.toFixed(2)}</td>
                 <td className="px-4 py-3">{line.taxRate}%</td>
-                <td className="px-4 py-3">${line.taxAmount.toFixed(2)}</td>
-                <td className="px-4 py-3 text-right">${(line.lineTotal + line.taxAmount).toFixed(2)}</td>
+                <td className="px-4 py-3">₹{line.taxAmount.toFixed(2)}</td>
+                <td className="px-4 py-3 text-right">₹{(line.lineTotal + line.taxAmount).toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
@@ -156,24 +156,24 @@ const InvoiceView = () => {
         <div className="w-64 space-y-2">
           <div className="flex justify-between">
             <span className="text-gray-600">Base Amount:</span>
-            <span>${invoice.subtotal.toFixed(2)}</span>
+            <span>₹{invoice.subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Tax:</span>
-            <span>${invoice.taxAmount.toFixed(2)}</span>
+            <span>₹{invoice.taxAmount.toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Discount:</span>
-            <span>-${invoice.discountAmount.toFixed(2)}</span>
+            <span>-₹{invoice.discountAmount.toFixed(2)}</span>
           </div>
           <div className="border-t pt-2 flex justify-between font-bold text-lg">
             <span>Total:</span>
-            <span>${invoice.total.toFixed(2)}</span>
+            <span>₹{invoice.total.toFixed(2)}</span>
           </div>
           {invoice.paidAmount > 0 && (
             <div className="flex justify-between text-green-600">
               <span>Paid:</span>
-              <span>${invoice.paidAmount.toFixed(2)}</span>
+              <span>₹{invoice.paidAmount.toFixed(2)}</span>
             </div>
           )}
         </div>

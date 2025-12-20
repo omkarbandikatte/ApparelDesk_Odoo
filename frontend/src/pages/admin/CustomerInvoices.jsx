@@ -107,8 +107,8 @@ const CustomerInvoices = () => {
                         {invoice.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4">${invoice.total.toFixed(2)}</td>
-                    <td className="px-6 py-4">${invoice.paidAmount.toFixed(2)}</td>
+                    <td className="px-6 py-4">₹{invoice.total.toFixed(2)}</td>
+                    <td className="px-6 py-4">₹{invoice.paidAmount.toFixed(2)}</td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
                         {invoice.status === 'draft' && (

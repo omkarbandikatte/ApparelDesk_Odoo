@@ -50,11 +50,11 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <h3 className="text-sm font-medium text-gray-600 mb-2">Total Sales</h3>
-            <p className="text-3xl font-bold text-primary-600">${kpis.totalSales.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-primary-600">₹{kpis.totalSales.toLocaleString()}</p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <h3 className="text-sm font-medium text-gray-600 mb-2">Total Purchases</h3>
-            <p className="text-3xl font-bold text-blue-600">${kpis.totalPurchases.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-blue-600">₹{kpis.totalPurchases.toLocaleString()}</p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <h3 className="text-sm font-medium text-gray-600 mb-2">Pending Invoices</h3>

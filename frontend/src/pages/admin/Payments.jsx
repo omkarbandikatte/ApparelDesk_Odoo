@@ -84,7 +84,7 @@ const Payments = () => {
                         <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">Vendor</span>
                       )}
                     </td>
-                    <td className="px-6 py-4">${payment.amount.toFixed(2)}</td>
+                    <td className="px-6 py-4">₹{payment.amount.toFixed(2)}</td>
                     <td className="px-6 py-4 capitalize">{payment.paymentMethod.replace('_', ' ')}</td>
                     <td className="px-6 py-4">{new Date(payment.paymentDate).toLocaleDateString()}</td>
                   </tr>

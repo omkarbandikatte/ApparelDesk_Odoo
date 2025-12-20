@@ -13,28 +13,24 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchProduct = () => {
       try {
-        // const response = await api.get(`/products/${id}`);
-        // setProduct(response.data);
-        // Mock data
-        const mockProduct = {
-          id: 1,
-          name: 'Classic T-Shirt',
-          description: 'A comfortable and stylish classic t-shirt made from premium cotton.',
-          category: 'Shirts',
-          type: 'T-Shirt',
-          material: 'Cotton',
-          colors: 'Red,Blue,Green',
-          sizes: 'S,M,L,XL',
-          salesPrice: 29.99,
-          taxRate: 18,
-          stockQuantity: 50,
-          imageUrl: 'https://via.placeholder.com/600',
-        };
-        setProduct(mockProduct);
-        if (mockProduct.colors) {
-          setSelectedColor(mockProduct.colors.split(',')[0].trim());
+        // Get product from localStorage
+        const storedProducts = localStorage.getItem('products');
+        if (storedProducts) {
+          const allProducts = JSON.parse(storedProducts);
+          const foundProduct = allProducts.find(p => p.id === parseInt(id));
+          if (foundProduct) {
+            setProduct(foundProduct);
+            if (foundProduct.colors) {
+              const colorList = typeof foundProduct.colors === 'string' 
+                ? foundProduct.colors.split(',').map(c => c.trim())
+                : foundProduct.colors;
+              if (colorList.length > 0) {
+                setSelectedColor(colorList[0]);
+              }
+            }
+          }
         }
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -70,8 +66,16 @@ const ProductDetail = () => {
     );
   }
 
-  const colors = product.colors ? product.colors.split(',').map((c) => c.trim()) : [];
-  const sizes = product.sizes ? product.sizes.split(',').map((s) => s.trim()) : [];
+  const colors = product.colors 
+    ? (typeof product.colors === 'string' 
+        ? product.colors.split(',').map((c) => c.trim())
+        : product.colors)
+    : [];
+  const sizes = product.sizes 
+    ? (typeof product.sizes === 'string'
+        ? product.sizes.split(',').map((s) => s.trim())
+        : product.sizes)
+    : [];
   const taxAmount = (product.salesPrice * quantity * product.taxRate) / 100;
   const total = product.salesPrice * quantity + taxAmount;
 
@@ -152,10 +156,10 @@ const ProductDetail = () => {
             {/* Price */}
             <div className="mb-6">
               <div className="text-3xl font-bold text-primary-600 mb-2">
-                ${product.salesPrice.toFixed(2)}
+                ₹{product.salesPrice.toFixed(2)}
               </div>
               <div className="text-sm text-gray-600">
-                Base: ${product.salesPrice.toFixed(2)} + Tax (${product.taxRate}%): ${taxAmount.toFixed(2)}
+                Base: ₹{product.salesPrice.toFixed(2)} + Tax ({product.taxRate}%): ₹{taxAmount.toFixed(2)}
               </div>
             </div>
 

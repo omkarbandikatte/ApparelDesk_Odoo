@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
+import { useCart } from '../context/CartContext';
+import Button from '../components/ui/Button';
 
 const Shop = () => {
+  const { addToCart } = useCart();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [filters, setFilters] = useState({
@@ -228,30 +231,49 @@ const Shop = () => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredProducts.map((product) => (
-                  <Link
+                  <div
                     key={product.id}
-                    to={`/product/${product.id}`}
-                    className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+                    className="bg-card rounded-lg border border-border overflow-hidden hover:shadow-lg transition-shadow flex flex-col"
                   >
-                    <img
-                      src={product.imageUrl || 'https://via.placeholder.com/300'}
-                      alt={product.name}
-                      className="w-full h-64 object-cover"
-                    />
-                    <div className="p-4">
-                      <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
-                      <p className="text-primary-600 font-bold text-xl mb-2">
-                        ${product.salesPrice.toFixed(2)}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {product.stockQuantity > 0 ? (
-                          <span className="text-green-600">In Stock</span>
-                        ) : (
-                          <span className="text-red-600">Out of Stock</span>
-                        )}
-                      </p>
+                    <Link to={`/product/${product.id}`} className="flex-1">
+                      <img
+                        src={product.imageUrl || 'https://via.placeholder.com/300'}
+                        alt={product.name}
+                        className="w-full h-64 object-cover"
+                      />
+                      <div className="p-4">
+                        <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
+                        <p className="text-primary font-bold text-xl mb-2">
+                          ₹{product.salesPrice.toFixed(2)}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {product.stockQuantity > 0 ? (
+                            <span className="text-green-600">In Stock</span>
+                          ) : (
+                            <span className="text-red-600">Out of Stock</span>
+                          )}
+                        </p>
+                      </div>
+                    </Link>
+                    <div className="p-4 pt-0">
+                      <Button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (product.stockQuantity > 0) {
+                            addToCart(product, 1);
+                          }
+                        }}
+                        disabled={product.stockQuantity === 0}
+                        className="w-full"
+                        size="sm"
+                      >
+                        <svg className="h-4 w-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Add to Cart
+                      </Button>
                     </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             )}
