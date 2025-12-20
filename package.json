@@ -1,0 +1,24 @@
+{
+  "name": "appareldesk",
+  "version": "1.0.0",
+  "description": "Modern e-commerce + ERP-lite system - Frontend Only",
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "install": "cd frontend && npm install"
+  },
+  "keywords": [
+    "ecommerce",
+    "erp",
+    "react",
+    "frontend"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "pg": "^8.16.3",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.7"
+  }
+}
