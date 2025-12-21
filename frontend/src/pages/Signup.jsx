@@ -11,9 +11,13 @@ const Signup = () => {
     email: '',
     password: '',
     mobile: '',
-    address: '',
-    role: 'customer',
+    address_city: '',
+    address_state: '',
+    address_pincode: '',
+    role: 'portal', // 'portal' (customer) or 'internal' (admin)
   });
+  const [adminCode, setAdminCode] = useState('');
+  const [showAdminCode, setShowAdminCode] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signup } = useAuth();
@@ -23,12 +27,20 @@ const Signup = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleRoleChange = (e) => {
+    const newRole = e.target.value;
+    setFormData({ ...formData, role: newRole });
+    setShowAdminCode(newRole === 'internal');
+    setAdminCode('');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    if (!formData.name || !formData.email || !formData.password) {
+    // Basic validation
+    if (!formData.name || !formData.email || !formData.password || !formData.role) {
       setError('Please fill in all required fields');
       setLoading(false);
       return;
@@ -46,11 +58,24 @@ const Signup = () => {
       return;
     }
 
-    const result = await signup(formData);
+    // Admin code validation
+    if (formData.role === 'internal' && adminCode !== 'ADMIN2025') { // Change this code in backend too
+      setError('Invalid admin code. Contact administrator for access.');
+      setLoading(false);
+      return;
+    }
+
+    // Split address into city/state/pincode for backend
+    const submitData = {
+      ...formData,
+      role: formData.role === 'customer' ? 'portal' : 'internal', // Map frontend to backend
+    };
+
+    const result = await signup(submitData);
     setLoading(false);
 
     if (result.success) {
-      if (formData.role === 'seller') {
+      if (submitData.role === 'internal') {
         navigate('/admin');
       } else {
         navigate('/');
@@ -130,25 +155,53 @@ const Signup = () => {
                   id="mobile"
                   name="mobile"
                   type="tel"
-                  placeholder="123-456-7890"
+                  placeholder="9876543210"
                   value={formData.mobile}
                   onChange={handleChange}
                 />
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="address" className="text-sm font-medium leading-none">
-                  Address
-                </label>
-                <textarea
-                  id="address"
-                  name="address"
-                  rows="3"
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  placeholder="Your address"
-                  value={formData.address}
-                  onChange={handleChange}
-                />
+              {/* Split address into city/state/pincode */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="address_city" className="text-sm font-medium leading-none">
+                    City
+                  </label>
+                  <Input
+                    id="address_city"
+                    name="address_city"
+                    type="text"
+                    placeholder="Mumbai"
+                    value={formData.address_city}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="address_state" className="text-sm font-medium leading-none">
+                    State
+                  </label>
+                  <Input
+                    id="address_state"
+                    name="address_state"
+                    type="text"
+                    placeholder="Maharashtra"
+                    value={formData.address_state}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="address_pincode" className="text-sm font-medium leading-none">
+                    Pincode
+                  </label>
+                  <Input
+                    id="address_pincode"
+                    name="address_pincode"
+                    type="text"
+                    placeholder="400001"
+                    value={formData.address_pincode}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -161,17 +214,38 @@ const Signup = () => {
                   required
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   value={formData.role}
-                  onChange={handleChange}
+                  onChange={handleRoleChange}
                 >
-                  <option value="customer">Customer (Buy Products)</option>
-                  <option value="seller">Seller (Sell Products - Admin Access)</option>
+                  <option value="portal">Customer (Buy Products)</option>
+                  <option value="internal">Internal Admin (Manage System)</option>
                 </select>
                 <p className="text-xs text-muted-foreground">
-                  {formData.role === 'customer'
+                  {formData.role === 'portal'
                     ? 'Customer account: Shop and purchase products'
-                    : 'Seller account: Access admin panel to manage products, orders, and inventory'}
+                    : 'Internal Admin: Full system access (requires admin code)'}
                 </p>
               </div>
+
+              {/* Admin Code Field - conditionally shown */}
+              {showAdminCode && (
+                <div className="space-y-2">
+                  <label htmlFor="adminCode" className="text-sm font-medium leading-none">
+                    Admin Access Code *
+                  </label>
+                  <Input
+                    id="adminCode"
+                    name="adminCode"
+                    type="password"
+                    placeholder="Enter admin code"
+                    value={adminCode}
+                    onChange={(e) => setAdminCode(e.target.value)}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Contact your administrator for the access code
+                  </p>
+                </div>
+              )}
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
