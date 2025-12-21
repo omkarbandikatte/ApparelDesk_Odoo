@@ -3,9 +3,11 @@ import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Customer Portal Pages
+// Public / Auth
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+
+// Customer Pages
 import Home from './pages/Home';
 import Shop from './pages/Shop';
 import ProductDetail from './pages/ProductDetail';
@@ -36,144 +38,158 @@ function App() {
     <AuthProvider>
       <CartProvider>
         <Routes>
-          {/* Customer Portal Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+          {/* ---------- PUBLIC ---------- */}
           <Route path="/" element={<Home />} />
-          {/* Shop and products are public - anyone can browse */}
           <Route path="/shop" element={<Shop />} />
           <Route path="/product/:id" element={<ProductDetail />} />
-          {/* Cart and checkout require customer login (not admin) */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+
+          {/* ---------- CUSTOMER (portal) ---------- */}
           <Route
             path="/cart"
             element={
-              <ProtectedRoute requireAdmin={false}>
+              <ProtectedRoute allow={['portal']}>
                 <Cart />
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/checkout"
             element={
-              <ProtectedRoute requireAdmin={false}>
+              <ProtectedRoute allow={['portal']}>
                 <Checkout />
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/order-confirmation/:orderNumber"
             element={
-              <ProtectedRoute requireAdmin={false}>
+              <ProtectedRoute allow={['portal']}>
                 <OrderConfirmation />
               </ProtectedRoute>
             }
           />
-          
-          {/* My Account Routes - Only for customers */}
+
           <Route
             path="/my-account"
             element={
-              <ProtectedRoute requireAdmin={false}>
+              <ProtectedRoute allow={['portal']}>
                 <MyAccount />
               </ProtectedRoute>
             }
           >
-            <Route index element={<Navigate to="/my-account" replace />} />
+            <Route index element={<Navigate to="sale-orders" replace />} />
             <Route path="sale-orders" element={<SaleOrders />} />
             <Route path="sale-orders/:id" element={<SaleOrderView />} />
             <Route path="invoices" element={<Invoices />} />
             <Route path="invoices/:id" element={<InvoiceView />} />
           </Route>
 
-          {/* Admin Routes - Only for sellers/admin */}
+          {/* ---------- ADMIN (internal) ---------- */}
           <Route
             path="/admin"
             element={
-              <ProtectedRoute requireAdmin={true}>
+              <ProtectedRoute allow={['internal']}>
                 <AdminDashboard />
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/admin/products"
             element={
-              <ProtectedRoute requireAdmin={true}>
+              <ProtectedRoute allow={['internal']}>
                 <AdminProducts />
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/admin/contacts"
             element={
-              <ProtectedRoute requireAdmin={true}>
+              <ProtectedRoute allow={['internal']}>
                 <AdminContacts />
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/admin/sale-orders"
             element={
-              <ProtectedRoute requireAdmin={true}>
+              <ProtectedRoute allow={['internal']}>
                 <AdminSaleOrders />
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/admin/invoices"
             element={
-              <ProtectedRoute requireAdmin={true}>
+              <ProtectedRoute allow={['internal']}>
                 <AdminCustomerInvoices />
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/admin/purchase-orders"
             element={
-              <ProtectedRoute requireAdmin={true}>
+              <ProtectedRoute allow={['internal']}>
                 <AdminPurchaseOrders />
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/admin/vendor-bills"
             element={
-              <ProtectedRoute requireAdmin={true}>
+              <ProtectedRoute allow={['internal']}>
                 <AdminVendorBills />
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/admin/payments"
             element={
-              <ProtectedRoute requireAdmin={true}>
+              <ProtectedRoute allow={['internal']}>
                 <AdminPayments />
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/admin/payment-terms"
             element={
-              <ProtectedRoute requireAdmin={true}>
+              <ProtectedRoute allow={['internal']}>
                 <AdminPaymentTerms />
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/admin/discounts"
             element={
-              <ProtectedRoute requireAdmin={true}>
+              <ProtectedRoute allow={['internal']}>
                 <AdminDiscountOffers />
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/admin/reports"
             element={
-              <ProtectedRoute requireAdmin={true}>
+              <ProtectedRoute allow={['internal']}>
                 <AdminReports />
               </ProtectedRoute>
             }
           />
+
+          {/* ---------- FALLBACK ---------- */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </CartProvider>
     </AuthProvider>
@@ -181,4 +197,3 @@ function App() {
 }
 
 export default App;
-

@@ -1,31 +1,31 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import Card from '../components/ui/Card';
-import Input from '../components/ui/Input';
-import Button from '../components/ui/Button';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import Card from "../components/ui/Card";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     if (!email || !password) {
-      setError('Please fill in all fields');
+      setError("Please fill in all fields");
       setLoading(false);
       return;
     }
 
-    if (!email.includes('@')) {
-      setError('Please enter a valid email address');
+    if (!email.includes("@")) {
+      setError("Please enter a valid email address");
       setLoading(false);
       return;
     }
@@ -34,23 +34,23 @@ const Login = () => {
     setLoading(false);
 
     if (result.success) {
-      if (result.user?.isAdmin) {
-        navigate('/admin');
+      if (result.user.role === "internal") {
+        navigate("/admin");
       } else {
-        navigate('/');
+        navigate("/");
       }
     } else {
-      setError(result.error || 'Login failed. Please try again.');
+      setError(result.error || "Login failed. Please try again.");
     }
   };
 
   const fillDummyCredentials = (type) => {
-    if (type === 'customer') {
-      setEmail('customer@demo.com');
-      setPassword('customer123');
+    if (type === "customer") {
+      setEmail("customer@demo.com");
+      setPassword("customer123");
     } else {
-      setEmail('seller@demo.com');
-      setPassword('seller123');
+      setEmail("seller@demo.com");
+      setPassword("seller123");
     }
   };
 
@@ -59,7 +59,9 @@ const Login = () => {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold tracking-tight">Welcome back</h1>
-          <p className="text-muted-foreground">Sign in to your account to continue</p>
+          <p className="text-muted-foreground">
+            Sign in to your account to continue
+          </p>
         </div>
 
         <Card className="p-8 shadow-lg">
@@ -72,7 +74,10 @@ const Login = () => {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium leading-none">
+                <label
+                  htmlFor="email"
+                  className="text-sm font-medium leading-none"
+                >
                   Email
                 </label>
                 <Input
@@ -86,7 +91,10 @@ const Login = () => {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium leading-none">
+                <label
+                  htmlFor="password"
+                  className="text-sm font-medium leading-none"
+                >
                   Password
                 </label>
                 <Input
@@ -101,7 +109,7 @@ const Login = () => {
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? "Signing in..." : "Sign in"}
             </Button>
 
             <div className="relative">
@@ -109,7 +117,9 @@ const Login = () => {
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">Quick Login</span>
+                <span className="bg-card px-2 text-muted-foreground">
+                  Quick Login
+                </span>
               </div>
             </div>
 
@@ -117,7 +127,7 @@ const Login = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => fillDummyCredentials('customer')}
+                onClick={() => fillDummyCredentials("customer")}
                 className="text-xs"
               >
                 👤 Customer
@@ -125,7 +135,7 @@ const Login = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => fillDummyCredentials('seller')}
+                onClick={() => fillDummyCredentials("seller")}
                 className="text-xs"
               >
                 🏪 Seller
@@ -135,8 +145,12 @@ const Login = () => {
             <div className="text-center text-sm text-muted-foreground">
               <p className="mb-2">Demo Credentials:</p>
               <div className="space-y-1 text-xs bg-muted/50 p-3 rounded-md">
-                <p><strong>Customer:</strong> customer@demo.com / customer123</p>
-                <p><strong>Seller:</strong> seller@demo.com / seller123</p>
+                <p>
+                  <strong>Customer:</strong> customer@demo.com / customer123
+                </p>
+                <p>
+                  <strong>Seller:</strong> seller@demo.com / seller123
+                </p>
               </div>
             </div>
           </form>
@@ -144,7 +158,10 @@ const Login = () => {
 
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Don't have an account? </span>
-          <Link to="/signup" className="font-medium text-primary hover:underline">
+          <Link
+            to="/signup"
+            className="font-medium text-primary hover:underline"
+          >
             Sign up
           </Link>
         </div>

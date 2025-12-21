@@ -16,6 +16,7 @@ const Signup = () => {
     address_pincode: '',
     role: 'portal', // 'portal' (customer) or 'internal' (admin)
   });
+  // console.log(formData);
   const [adminCode, setAdminCode] = useState('');
   const [showAdminCode, setShowAdminCode] = useState(false);
   const [error, setError] = useState('');
@@ -68,12 +69,12 @@ const Signup = () => {
     // Split address into city/state/pincode for backend
     const submitData = {
       ...formData,
-      role: formData.role === 'customer' ? 'portal' : 'internal', // Map frontend to backend
+      // Map frontend to backend
     };
 
     const result = await signup(submitData);
     setLoading(false);
-
+    console.log(submitData)
     if (result.success) {
       if (submitData.role === 'internal') {
         navigate('/admin');
