@@ -19,6 +19,7 @@ const saleOrderRoutes = require('../routes/saleOrders');
 const couponRoutes = require('../routes/coupons');
 const invoiceRoutes = require('../routes/invoices');
 const adminRoutes = require('../routes/admin');
+const discountRoutes = require('../routes/discountOffers')
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -41,6 +42,7 @@ app.use('/api/contacts', contactRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/sale-orders', saleOrderRoutes);
 app.use('/api/coupons', couponRoutes);
+app.use('/api/discount-offers', discountRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/admin', adminRoutes);
 

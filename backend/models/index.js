@@ -63,8 +63,8 @@ Contact.hasMany(VendorBill, { foreignKey: 'contactId', as: 'vendorBills' });
 VendorBill.belongsTo(Contact, { foreignKey: 'contactId', as: 'contact' });
 
 // Contact - CouponCode (one-to-many)
-Contact.hasMany(CouponCode, { foreignKey: 'contactId', as: 'couponCodes' });
-CouponCode.belongsTo(Contact, { foreignKey: 'contactId', as: 'contact' });
+// Contact.hasMany(CouponCode, { foreignKey: 'contactId', as: 'couponCodes' });
+// CouponCode.belongsTo(Contact, { foreignKey: 'contactId', as: 'contact' });
 
 // PaymentTerm - SaleOrder (one-to-many)
 PaymentTerm.hasMany(SaleOrder, { foreignKey: 'paymentTermId', as: 'saleOrders' });
@@ -74,10 +74,21 @@ SaleOrder.belongsTo(PaymentTerm, { foreignKey: 'paymentTermId', as: 'paymentTerm
 PaymentTerm.hasMany(CustomerInvoice, { foreignKey: 'paymentTermId', as: 'customerInvoices' });
 CustomerInvoice.belongsTo(PaymentTerm, { foreignKey: 'paymentTermId', as: 'paymentTerm' });
 
-// DiscountOffer - CouponCode (one-to-many)
-DiscountOffer.hasMany(CouponCode, { foreignKey: 'discountOfferId', as: 'couponCodes' });
-CouponCode.belongsTo(DiscountOffer, { foreignKey: 'discountOfferId', as: 'discountOffer' });
+// models/index.js - Make sure associations use snake_case foreign keys
+DiscountOffer.hasMany(CouponCode, { 
+  foreignKey: 'discount_offer_id',  // snake_case column name
+  as: 'coupons' 
+});
+CouponCode.belongsTo(DiscountOffer, { 
+  foreignKey: 'discount_offer_id'   // snake_case column name
+});
 
+Contact.hasMany(CouponCode, { 
+  foreignKey: 'contact_id'          // snake_case column name
+});
+CouponCode.belongsTo(Contact, { 
+  foreignKey: 'contact_id'          // snake_case column name
+});
 // CouponCode - SaleOrder (one-to-many)
 CouponCode.hasMany(SaleOrder, { foreignKey: 'couponCodeId', as: 'saleOrders' });
 SaleOrder.belongsTo(CouponCode, { foreignKey: 'couponCodeId', as: 'couponCode' });
