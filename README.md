@@ -1,6 +1,7 @@
 # ApparelDesk - Frontend Only
 
 A beautiful, modern e-commerce + ERP-lite system built with React, featuring separate UIs for customers and sellers.
+Video of the project:https://drive.google.com/file/d/1_dH-esKZxN5XzgYjCNcOO8S57Mdhsd1a/view?usp=sharing
 
 ## 🎨 Design
 
